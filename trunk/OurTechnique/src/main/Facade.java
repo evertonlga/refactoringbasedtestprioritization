@@ -1,5 +1,4 @@
 package main;
-
 import japa.parser.ast.CompilationUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -62,15 +61,16 @@ public class Facade {
 	}
 	
 	public static void main(String args[]) throws DBException{
-		String path = "examples/jmock-1.1.0/core";
+//		String path = "examples/jmock-1.1.0/core";
+		String path = "examples";
 		Facade f = new Facade();
 		ArrayList<CompilationUnit> comps = f.parse(path);
-//		f.getImpactedElementsRenameMethod(comps, "CallLogger", "write", "test");
-//		f.getImpactedElementsExtractMethod(comps, "CallLogger", "pushFieldRead", "newMeth", 37, 39);
-//		f.getImpactedElementsMoveMethod(comps, "CallLogger", "C", "pushFieldRead");
-//		f.getImpactedElementsPullUpMethod(comps, "C", "B", "test");
-//		f.getImpactedElementsPullUpField(comps, "B", "A", "v");
-		HashSet<OurMethodDeclaration> impactedMeths = f.getImpactedElementsAddParameter(comps, "org.jmock.builder.InvocationMockerBuilder", "setStub");
+		f.getImpactedElementsRenameMethod(comps, "callGraph.CallLogger", "write(String line)", "test()");
+//		f.getImpactedElementsExtractMethod(comps, "callGraph.CallLogger", "pushFieldRead(Signature s)", "newMeth", 37, 39);
+//		f.getImpactedElementsMoveMethod(comps, "callGraph.CallLogger", "pack.C", "pushFieldRead(Signature s)");
+//		f.getImpactedElementsPullUpMethod(comps, "pack.C", "pack.B", "test()");
+//		f.getImpactedElementsPullUpField(comps, "pack.B", "pack.A", "v");
+//		HashSet<OurMethodDeclaration> impactedMeths = f.getImpactedElementsAddParameter(comps, "org.jmock.builder.InvocationMockerBuilder", "setStub( Stub stubAction )");
 	}
 
 }

@@ -25,7 +25,7 @@ public class PullUpField extends Common{
 		String packageStr1 = "_"+typeObjOne.getPackageD().getName();
 		
 		TypeObj typeObjTwo = getType(comps, classTwoName);
-		TypeDeclaration classTarget = typeObjOne.getType();
+		TypeDeclaration classTarget = typeObjTwo.getType();
 		String packageStr2 = "_"+typeObjTwo.getPackageD().getName();
 			
 		ArrayList<OurMethodDeclaration> impactedFromOrig = getMethodThatAccessField(classOrig, fieldName, packageStr1);
@@ -33,21 +33,21 @@ public class PullUpField extends Common{
 		impactedMethods.addAll(getMethodThatAccessField(classTarget, fieldName, packageStr2));
 		
 		for (OurMethodDeclaration ourMethodDeclaration : impactedFromOrig) {
-			MethodDeclaration m = getMethod(classTarget, ourMethodDeclaration.getName());
+			MethodDeclaration m = getMethod(classTarget, ourMethodDeclaration.toString());
 			if (m != null)
 				impactedMethods.add(new OurMethodDeclaration(m.getName(), m.getParameters()));
 		}
 		
-		ArrayList<TypeDeclaration> classes = allclasses(comps);
-		ArrayList<TypeDeclaration> subClasses = getSubClasses(classes, classTarget);
-		for (TypeDeclaration sub : subClasses) {
-			TypeObj cObj = getType(comps, sub.getName());
+		ArrayList<TypeObj> classes = allclasses(comps);
+		ArrayList<TypeObj> subClasses = getSubClasses(classes, classTarget);
+		for (TypeObj sub : subClasses) {
+			TypeObj cObj = getType(comps, sub.toString());
 			String packageStr = "_"+cObj.getPackageD().getName();
 			
-			impactedMethods.addAll(getMethodThatAccessField(sub, fieldName, packageStr));
+			impactedMethods.addAll(getMethodThatAccessField(sub.getType(), fieldName, packageStr));
 			
 			for (OurMethodDeclaration ourMethodDeclaration : impactedFromOrig) {
-				MethodDeclaration m = getMethod(classTarget, ourMethodDeclaration.getName());
+				MethodDeclaration m = getMethod(classTarget, ourMethodDeclaration.toString());
 				if (m != null)
 					impactedMethods.add(new OurMethodDeclaration(m.getName(), m.getParameters()));
 			}

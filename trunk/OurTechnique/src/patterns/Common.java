@@ -24,8 +24,8 @@ import util.TypeObj;
 
 public class Common {
 
-	private static ArrayList<TypeDeclaration> subClasses;
-	private static ArrayList<TypeDeclaration> superClasses;
+	private static ArrayList<TypeObj> subClasses;
+	private static ArrayList<TypeObj> superClasses;
 
 	protected static HashSet<OurMethodDeclaration> caller(TypeDeclaration classObj, MethodDeclaration meth, String packStr) {
 		HashSet<OurMethodDeclaration> impacted = new HashSet<>();
@@ -107,71 +107,80 @@ public class Common {
 		return false;
 	}
 	
-	protected static ArrayList<TypeDeclaration> allclasses(ArrayList<CompilationUnit> comps) {
-		ArrayList<TypeDeclaration> classes = new ArrayList<>();
+	protected static ArrayList<TypeObj> allclasses(ArrayList<CompilationUnit> comps) {
+		ArrayList<TypeObj> classes = new ArrayList<TypeObj>();
 		
 		for (CompilationUnit comp : comps) {
 			for (TypeDeclaration type : comp.getTypes()) {
-				classes.add(type);
+				classes.add(new TypeObj(comp.getPackage(), comp.getImports(), type));
 			}
 		}
 		return classes;
 	}
 	
 
-	private static TypeDeclaration searchClass(
-			ArrayList<TypeDeclaration> classes, String classname) {
-		for (TypeDeclaration typeDeclaration : classes) {
-			if (typeDeclaration.getName().equals(classname))
-				return typeDeclaration;
+	private static TypeObj searchClass(
+			ArrayList<TypeObj> classes, String classname) {
+		for (TypeObj typeObj : classes) {
+			if (typeObj.getType().getName().equals(classname))
+				return typeObj;
 		}
 		return null;
 	}
 
 	
-	protected static ArrayList<TypeDeclaration> getSubClasses(ArrayList<TypeDeclaration> classes, TypeDeclaration classObj) {
-		subClasses = new ArrayList<TypeDeclaration>();
-		for (TypeDeclaration type : classes) {
+	protected static ArrayList<TypeObj> getSubClasses(ArrayList<TypeObj> classes, TypeDeclaration classObj) {
+		subClasses = new ArrayList<TypeObj>();
+		for (TypeObj to : classes) {
 			SubClassesControler.setFound(false);
-			verifyIfIsSubClass (classes, (ClassOrInterfaceDeclaration)type, (ClassOrInterfaceDeclaration) classObj);
+			verifyIfIsSubClass (classes, (ClassOrInterfaceDeclaration)to.getType(), (ClassOrInterfaceDeclaration) classObj);
 		}
 		return subClasses;
 		
 	}
 
-	private static void verifyIfIsSubClass(ArrayList<TypeDeclaration> classes, ClassOrInterfaceDeclaration type,
+	private static void verifyIfIsSubClass(ArrayList<TypeObj> classes, ClassOrInterfaceDeclaration type,
 			ClassOrInterfaceDeclaration classObj) {
 		List<ClassOrInterfaceType> supers = type.getExtends();
 		if (supers != null ){
 			ClassOrInterfaceType superClass = supers.get(0);
 			if (!superClass.getName().equals(classObj.getName())){
-				TypeDeclaration superC = searchClass(classes, supers.get(0).getName());
+				TypeObj superC = searchClass(classes, supers.get(0).getName());
 				if (superC != null){
 					if (!type.getName().equals(classObj.getName())){
 						verifyIfIsSubClass(classes, 
-							(ClassOrInterfaceDeclaration) superC, classObj);
-						if (!subClasses.contains(type) && SubClassesControler.isFound()){
-							subClasses.add(type);
+							(ClassOrInterfaceDeclaration) superC.getType(), classObj);
+						if (!contains(subClasses,type) && SubClassesControler.isFound()){
+							subClasses.add(searchClass(classes, type.getName()));
 						}	
 					}
 				}
 			}else{
 				SubClassesControler.setFound(true);
-				if (!subClasses.contains(type)){
-					subClasses.add(type);
+				if (!contains(subClasses, type)){
+					subClasses.add(searchClass(classes, type.getName()));
 				}
 			}
 		}		
 	}
 	
 	
-	protected static ArrayList<TypeDeclaration> getSuperClasses(ArrayList<TypeDeclaration> classes, TypeDeclaration classObj) {
-		superClasses = new ArrayList<TypeDeclaration>();
+	private static boolean contains(ArrayList<TypeObj> subClasses,
+			ClassOrInterfaceDeclaration type) {
+		for (TypeObj sub : subClasses) {
+			if (sub.getType().equals(type))
+				return true;
+		}
+		return false;
+	}
+
+	protected static ArrayList<TypeObj> getSuperClasses(ArrayList<TypeObj> classes, TypeDeclaration classObj) {
+		superClasses = new ArrayList<TypeObj>();
 		ClassOrInterfaceDeclaration cd = (ClassOrInterfaceDeclaration) classObj;
 		while (cd.getExtends() != null) {
 			ClassOrInterfaceType c = cd.getExtends().get(0);
 			superClasses.add(searchClass(classes, c.getName()));
-			cd = (ClassOrInterfaceDeclaration) searchClass(classes, c.getName());
+			cd = (ClassOrInterfaceDeclaration) searchClass(classes, c.getName()).getType();
 		}
 		return superClasses;
 		
@@ -195,13 +204,39 @@ public class Common {
 	
 	
 	protected static MethodDeclaration getMethod(TypeDeclaration classObj,
-			String methodName) {
+			String methodString) {
 		for (BodyDeclaration bd : classObj.getMembers()) {
 			if (bd instanceof MethodDeclaration) {
 				MethodDeclaration md = (MethodDeclaration) bd;
-				if (md.getName().equals(methodName)){
-//					System.out.println("Achou 2");
-					return md;
+				int index = methodString.lastIndexOf("_");
+				if (index == -1){
+					int leftPar = methodString.indexOf("(");
+					int rigthPar = methodString.indexOf(")");
+					if (leftPar != -1 && rigthPar != -1){
+						String param = methodString.substring(leftPar+1, rigthPar);
+						param = "["+param.trim()+"]";
+						if (md.getName().equals(methodString.subSequence(0,leftPar)))
+							if (md.getParameters() == null && param.equals("[]")){
+								return md;
+							}else if (md.getParameters() != null && md.getParameters().toString().trim().equals(param)){
+								return md;
+							}
+					} else{
+						if (methodString.equals(((MethodDeclaration) bd).getName()))
+							return md;
+					}
+				}
+				else{
+					if (index != -1){
+						String methN = methodString.substring(0, index);
+						String param = (methodString.substring(methodString.indexOf("(")+1, methodString.indexOf(")"))).trim();
+						if (md.getName().equals(methN))
+							if ((md.getParameters() != null && md.getParameters().toString().trim().equals(param)) ||
+									(md.getParameters() != null && param.equals(""))){
+//							System.out.println("Achou 2");
+							return md;
+						}
+					}
 				}
 			}
 		}
@@ -264,7 +299,8 @@ public class Common {
 			if (stms != null){
 				for (Statement statement : stms) {
 					if (accessField(statement, fieldName)){
-						affectedMeths.add(new OurMethodDeclaration(method.getName()+packD, method.getParameters()));
+						affectedMeths.add(new OurMethodDeclaration(
+								method.getName()+packD+"."+classObj.getName(), method.getParameters()));
 						break;
 					}
 				}

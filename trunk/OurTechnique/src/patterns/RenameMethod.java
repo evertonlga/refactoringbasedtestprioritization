@@ -28,32 +28,32 @@ public class RenameMethod extends Common {
 		if (newMeth != null)
 			impactedMethods.addAll(caller(classObj, newMeth, packageStr));
 		
-		ArrayList<TypeDeclaration> classes = allclasses(comps);
-		ArrayList<TypeDeclaration> subClasses = getSubClasses(classes, classObj);
-		for (TypeDeclaration sub : subClasses) {
-			TypeObj cObj = getType(comps, sub.getName());
+		ArrayList<TypeObj> classes = allclasses(comps);
+		ArrayList<TypeObj> subClasses = getSubClasses(classes, classObj);
+		for (TypeObj sub : subClasses) {
+			TypeObj cObj = getType(comps, sub.toString());
 			String packStr = "_"+cObj.getPackageD().getName();
 			
-			impactedMethods.addAll(caller(sub, meth, packStr));
-			impactedMethods.addAll(caller(sub, newName, packStr));
+			impactedMethods.addAll(caller(sub.getType(), meth, packStr));
+			impactedMethods.addAll(caller(sub.getType(), newName, packStr));
 		}
 		
-		ArrayList<TypeDeclaration> superClasses = getSuperClasses(classes, classObj);
-		for (TypeDeclaration superC : superClasses) {
-			TypeObj cObj = getType(comps, superC.getName());
+		ArrayList<TypeObj> superClasses = getSuperClasses(classes, classObj);
+		for (TypeObj superC : superClasses) {
+			TypeObj cObj = getType(comps, superC.toString());
 			String packStr = "_"+cObj.getPackageD().getName();
 			
-			MethodDeclaration m = getMethod(superC, methodName);
+			MethodDeclaration m = getMethod(superC.getType(), methodName);
 			if (m != null)
 				impactedMethods.add(new OurMethodDeclaration(m.getName()+packageStr, m.getParameters()));
 		}
 		
 		if (ModifierSet.isStatic(meth.getModifiers())){
-			for (TypeDeclaration c : classes) {
-				TypeObj cObj = getType(comps, c.getName());
+			for (TypeObj c : classes) {
+				TypeObj cObj = getType(comps, c.toString());
 				String packStr = "_"+cObj.getPackageD().getName();
 				
-				impactedMethods.addAll(caller(c, meth, packStr));
+				impactedMethods.addAll(caller(c.getType(), meth, packStr));
 			}
 		}
 			

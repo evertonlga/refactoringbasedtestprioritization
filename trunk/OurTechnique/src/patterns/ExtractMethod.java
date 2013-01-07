@@ -39,33 +39,33 @@ public class ExtractMethod extends Common {
 		ArrayList<Statement> stms = getStatements(meth, beginLine, endLine);
 		impactedMethods.addAll(fieldAnalysis(classObj, stms, packageStr));
 		
-		ArrayList<TypeDeclaration> classes = allclasses(comps);
-		ArrayList<TypeDeclaration> subClasses = getSubClasses(classes, classObj);
-		for (TypeDeclaration sub : subClasses) {
-			TypeObj cObj = getType(comps, sub.getName());
+		ArrayList<TypeObj> classes = allclasses(comps);
+		ArrayList<TypeObj> subClasses = getSubClasses(classes, classObj);
+		for (TypeObj sub : subClasses) {
+			TypeObj cObj = getType(comps, sub.toString());
 			packageStr = "_"+typeObj.getPackageD().getName();
 			
-			impactedMethods.addAll(caller(sub, meth, packageStr));
-			impactedMethods.addAll(fieldAnalysis(sub, stms, packageStr));
-			impactedMethods.addAll(caller(sub, newMeth, packageStr));
+			impactedMethods.addAll(caller(sub.getType(), meth, packageStr));
+			impactedMethods.addAll(fieldAnalysis(sub.getType(), stms, packageStr));
+			impactedMethods.addAll(caller(sub.getType(), newMeth, packageStr));
 		}
 		
 		
 		if (ModifierSet.isStatic(meth.getModifiers())){
-			for (TypeDeclaration c : classes) {
-				TypeObj cObj = getType(comps, c.getName());
+			for (TypeObj c : classes) {
+				TypeObj cObj = getType(comps, c.toString());
 				packageStr = "_"+typeObj.getPackageD().getName();
 				
-				impactedMethods.addAll(caller(c, meth, packageStr));
+				impactedMethods.addAll(caller(c.getType(), meth, packageStr));
 			}
 		}
 		
 		if (newMeth!= null && ModifierSet.isStatic(newMeth.getModifiers())){
-			for (TypeDeclaration c : classes) {
-				TypeObj cObj = getType(comps, c.getName());
+			for (TypeObj c : classes) {
+				TypeObj cObj = getType(comps, c.toString());
 				packageStr = "_"+typeObj.getPackageD().getName();
 				
-				impactedMethods.addAll(caller(c, newMeth, packageStr));
+				impactedMethods.addAll(caller(c.getType(), newMeth, packageStr));
 			}
 		}
 			
