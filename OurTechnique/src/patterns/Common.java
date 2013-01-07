@@ -20,13 +20,14 @@ import com.thoughtworks.xstream.XStream;
 import util.ExprObj;
 import util.OurMethodDeclaration;
 import util.SubClassesControler;
+import util.TypeObj;
 
 public class Common {
 
 	private static ArrayList<TypeDeclaration> subClasses;
 	private static ArrayList<TypeDeclaration> superClasses;
 
-	protected static HashSet<OurMethodDeclaration> caller(TypeDeclaration classObj, MethodDeclaration meth) {
+	protected static HashSet<OurMethodDeclaration> caller(TypeDeclaration classObj, MethodDeclaration meth, String packStr) {
 		HashSet<OurMethodDeclaration> impacted = new HashSet<>();
 		
 		List<BodyDeclaration> members = classObj.getMembers();
@@ -35,14 +36,14 @@ public class Common {
 			if (member instanceof MethodDeclaration){
 				MethodDeclaration methodD = (MethodDeclaration) member;
 				if (isACaller(methodD, meth))
-					impacted.add(new OurMethodDeclaration(methodD.getName(), methodD.getParameters()));
+					impacted.add(new OurMethodDeclaration(methodD.getName()+packStr, methodD.getParameters()));
 			}
 		}
 		
 		return impacted;
 	}
 	
-	protected static HashSet<OurMethodDeclaration> caller(TypeDeclaration classObj, String methName) {
+	protected static HashSet<OurMethodDeclaration> caller(TypeDeclaration classObj, String methName, String packStr) {
 		HashSet<OurMethodDeclaration> impacted = new HashSet<>();
 		
 		List<BodyDeclaration> members = classObj.getMembers();
@@ -51,7 +52,7 @@ public class Common {
 			if (member instanceof MethodDeclaration){
 				MethodDeclaration methodD = (MethodDeclaration) member;
 				if (isACaller(methodD, methName))
-					impacted.add(new OurMethodDeclaration(methodD.getName(), methodD.getParameters()));
+					impacted.add(new OurMethodDeclaration(methodD.getName()+packStr, methodD.getParameters()));
 			}
 		}
 		
@@ -176,11 +177,16 @@ public class Common {
 		
 	}
 
-	protected static TypeDeclaration getType(ArrayList<CompilationUnit> comps, String className){
+	protected static TypeObj getType(ArrayList<CompilationUnit> comps, String classID){
 		for (CompilationUnit compU : comps) {
+			String packStr = compU.getPackage().getName().toString();
 			for (TypeDeclaration type : compU.getTypes()) {
-				if (type.getName().equals(className))
-					return type;
+				String str;
+				if (packStr.equals(""))
+					str = type.getName();
+				else str = packStr+"."+type.getName();
+				if (str.equals(classID))
+					return new TypeObj(compU.getPackage(), compU.getImports(), type);
 			}
 		}
 		
@@ -229,7 +235,7 @@ public class Common {
 	
 	
 	protected static ArrayList<OurMethodDeclaration> fieldAnalysis(TypeDeclaration classObj,
-			ArrayList<Statement> changedStms) {
+			ArrayList<Statement> changedStms, String packageStr) {
 		ArrayList<MethodDeclaration> methods = getMethods(classObj);
 		ArrayList<ExprObj> changedFields = (ArrayList<ExprObj>) getFieldsIn(changedStms);
 		
@@ -240,7 +246,7 @@ public class Common {
 			if (stms != null){
 				ArrayList<ExprObj> fields = (ArrayList<ExprObj>) getFieldsIn(stms);
 				if (commonElements(fields, changedFields))
-					affectedMeths.add(new OurMethodDeclaration(method.getName(), method.getParameters()));
+					affectedMeths.add(new OurMethodDeclaration(method.getName()+packageStr, method.getParameters()));
 			}
 		}
 		
@@ -249,7 +255,7 @@ public class Common {
 	}
 	
 	protected static ArrayList<OurMethodDeclaration> getMethodThatAccessField(TypeDeclaration classObj,
-			String fieldName) {
+			String fieldName, String packD) {
 		ArrayList<MethodDeclaration> methods = getMethods(classObj);
 		ArrayList<OurMethodDeclaration> affectedMeths = new ArrayList<OurMethodDeclaration>();
 		
@@ -258,7 +264,7 @@ public class Common {
 			if (stms != null){
 				for (Statement statement : stms) {
 					if (accessField(statement, fieldName)){
-						affectedMeths.add(new OurMethodDeclaration(method.getName(), method.getParameters()));
+						affectedMeths.add(new OurMethodDeclaration(method.getName()+packD, method.getParameters()));
 						break;
 					}
 				}

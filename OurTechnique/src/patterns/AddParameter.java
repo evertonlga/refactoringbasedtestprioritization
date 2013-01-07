@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import util.OurMethodDeclaration;
+import util.TypeObj;
 
 public class AddParameter extends Common{
 
@@ -17,21 +18,28 @@ public class AddParameter extends Common{
 			String methodName) {
 		HashSet<OurMethodDeclaration> impactedMethods = new HashSet<OurMethodDeclaration>();
 		
-		TypeDeclaration classObj = getType(comps, className);
+		TypeObj typeObj = getType(comps, className);
+		TypeDeclaration classObj = typeObj.getType();
+		String packageStr = "_"+typeObj.getPackageD().getName();
+		
 		MethodDeclaration meth = getMethod(classObj, methodName);
-				
-		impactedMethods.add(new OurMethodDeclaration(meth.getName(), meth.getParameters()));
-		impactedMethods.addAll(caller(classObj, meth));
+		
+		impactedMethods.add(new OurMethodDeclaration(meth.getName()+packageStr, meth.getParameters()));
+		impactedMethods.addAll(caller(classObj, meth, packageStr));
 		
 		ArrayList<TypeDeclaration> classes = allclasses(comps);
 		ArrayList<TypeDeclaration> subClasses = getSubClasses(classes, classObj);
 		for (TypeDeclaration sub : subClasses) {
-			impactedMethods.addAll(caller(sub, meth));
+			TypeObj subObj = getType(comps, sub.getName());
+			packageStr = "_"+subObj.getPackageD().getName();
+			impactedMethods.addAll(caller(sub, meth, packageStr));
 		}
 		
 		if (ModifierSet.isStatic(meth.getModifiers())){
 			for (TypeDeclaration c : classes) {
-				impactedMethods.addAll(caller(c, meth));
+				TypeObj cObj = getType(comps, c.getName());
+				packageStr = "_"+cObj.getPackageD().getName();
+				impactedMethods.addAll(caller(c, meth, packageStr));
 			}
 		}
 		

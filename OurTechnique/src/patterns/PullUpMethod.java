@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import util.OurMethodDeclaration;
+import util.TypeObj;
 
 public class PullUpMethod extends Common{
 
@@ -17,32 +18,44 @@ public class PullUpMethod extends Common{
 			String classTwoName, String methName) {
 		HashSet<OurMethodDeclaration> impactedMethods = new HashSet<OurMethodDeclaration>();
 		
-		TypeDeclaration classOrig = getType(comps, classOneName);
+		TypeObj typeObjOne = getType(comps, classOneName);
+		TypeDeclaration classOrig = typeObjOne.getType();
+		String packageStr1 = "_"+typeObjOne.getPackageD().getName();
+		
+		TypeObj typeObjTwo = getType(comps, classTwoName);
+		TypeDeclaration classTarget = typeObjOne.getType();
+		String packageStr2 = "_"+typeObjTwo.getPackageD().getName();
+		
 		MethodDeclaration meth = getMethod(classOrig, methName);
-		TypeDeclaration classTarget = getType(comps, classTwoName);
 		MethodDeclaration newMeth = getMethod(classTarget, methName);
 		
-		impactedMethods.add(new OurMethodDeclaration(meth.getName(), meth.getParameters()));
+		impactedMethods.add(new OurMethodDeclaration(meth.getName()+packageStr1, meth.getParameters()));
 		if (newMeth != null)
-			impactedMethods.add(new OurMethodDeclaration(newMeth.getName(), newMeth.getParameters()));
+			impactedMethods.add(new OurMethodDeclaration(newMeth.getName()+packageStr2, newMeth.getParameters()));
 		
 		if (meth != null){
-			impactedMethods.addAll(caller(classOrig, meth));
-			impactedMethods.addAll(caller(classTarget, meth));
+			impactedMethods.addAll(caller(classOrig, meth, packageStr1));
+			impactedMethods.addAll(caller(classTarget, meth, packageStr2));
 		}else {
-			impactedMethods.addAll(caller(classOrig, methName));
-			impactedMethods.addAll(caller(classTarget, methName));
+			impactedMethods.addAll(caller(classOrig, methName, packageStr1));
+			impactedMethods.addAll(caller(classTarget, methName, packageStr2));
 		}
 		
 		ArrayList<TypeDeclaration> classes = allclasses(comps);
 		ArrayList<TypeDeclaration> subClasses = getSubClasses(classes, classTarget);
 		for (TypeDeclaration sub : subClasses) {
-			impactedMethods.addAll(caller(sub, meth));
+			TypeObj cObj = getType(comps, sub.getName());
+			String packageStr = "_"+cObj.getPackageD().getName();
+			
+			impactedMethods.addAll(caller(sub, meth, packageStr));
 		}
 		
 		if (ModifierSet.isStatic(meth.getModifiers())){
 			for (TypeDeclaration c : classes) {
-				impactedMethods.addAll(caller(c, meth));
+				TypeObj cObj = getType(comps, c.getName());
+				String packageStr = "_"+cObj.getPackageD().getName();
+				
+				impactedMethods.addAll(caller(c, meth, packageStr));
 			}
 		}
 		
