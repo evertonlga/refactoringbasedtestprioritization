@@ -23,7 +23,7 @@ public class PullUpMethod extends Common{
 		String packageStr1 = "_"+typeObjOne.getPackageD().getName();
 		
 		TypeObj typeObjTwo = getType(comps, classTwoName);
-		TypeDeclaration classTarget = typeObjOne.getType();
+		TypeDeclaration classTarget = typeObjTwo.getType();
 		String packageStr2 = "_"+typeObjTwo.getPackageD().getName();
 		
 		MethodDeclaration meth = getMethod(classOrig, methName);
@@ -41,21 +41,21 @@ public class PullUpMethod extends Common{
 			impactedMethods.addAll(caller(classTarget, methName, packageStr2));
 		}
 		
-		ArrayList<TypeDeclaration> classes = allclasses(comps);
-		ArrayList<TypeDeclaration> subClasses = getSubClasses(classes, classTarget);
-		for (TypeDeclaration sub : subClasses) {
-			TypeObj cObj = getType(comps, sub.getName());
+		ArrayList<TypeObj> classes = allclasses(comps);
+		ArrayList<TypeObj> subClasses = getSubClasses(classes, classTarget);
+		for (TypeObj sub : subClasses) {
+			TypeObj cObj = getType(comps, sub.toString());
 			String packageStr = "_"+cObj.getPackageD().getName();
 			
-			impactedMethods.addAll(caller(sub, meth, packageStr));
+			impactedMethods.addAll(caller(sub.getType(), meth, packageStr));
 		}
 		
 		if (ModifierSet.isStatic(meth.getModifiers())){
-			for (TypeDeclaration c : classes) {
-				TypeObj cObj = getType(comps, c.getName());
+			for (TypeObj c : classes) {
+				TypeObj cObj = getType(comps, c.toString());
 				String packageStr = "_"+cObj.getPackageD().getName();
 				
-				impactedMethods.addAll(caller(c, meth, packageStr));
+				impactedMethods.addAll(caller(c.getType(), meth, packageStr));
 			}
 		}
 		

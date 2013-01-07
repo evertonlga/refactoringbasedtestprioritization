@@ -6,7 +6,7 @@ import japa.parser.ast.body.TypeDeclaration;
 
 import java.util.List;
 
-public class TypeObj {
+public class TypeObj{
 
 	private PackageDeclaration packageD;
 	private List<ImportDeclaration> imports;
@@ -42,7 +42,15 @@ public class TypeObj {
 	public void setType(TypeDeclaration type) {
 		this.type = type;
 	}
+
+	@Override
+	public boolean equals(Object o){
+		TypeObj obj = (TypeObj) o;
+		return this.type.equals(obj.type) && this.packageD.equals(obj.packageD) && this.imports.equals(obj.imports); 
+	}
 	
-	
+	public String toString(){
+		return packageD.getName()+"."+type.getName();
+	}
 
 }
