@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import util.OurMethodDeclaration;
+import util.TypeObj;
 
 public class PullUpField extends Common{
 	
@@ -19,12 +20,17 @@ public class PullUpField extends Common{
 			String classTwoName, String fieldName) {
 		HashSet<OurMethodDeclaration> impactedMethods = new HashSet<OurMethodDeclaration>();
 		
-		TypeDeclaration classOrig = getType(comps, classOneName);
-		TypeDeclaration classTarget = getType(comps, classTwoName);
+		TypeObj typeObjOne = getType(comps, classOneName);
+		TypeDeclaration classOrig = typeObjOne.getType();
+		String packageStr1 = "_"+typeObjOne.getPackageD().getName();
 		
-		ArrayList<OurMethodDeclaration> impactedFromOrig = getMethodThatAccessField(classOrig, fieldName);
+		TypeObj typeObjTwo = getType(comps, classTwoName);
+		TypeDeclaration classTarget = typeObjOne.getType();
+		String packageStr2 = "_"+typeObjTwo.getPackageD().getName();
+			
+		ArrayList<OurMethodDeclaration> impactedFromOrig = getMethodThatAccessField(classOrig, fieldName, packageStr1);
 		impactedMethods.addAll(impactedFromOrig);
-		impactedMethods.addAll(getMethodThatAccessField(classTarget, fieldName));
+		impactedMethods.addAll(getMethodThatAccessField(classTarget, fieldName, packageStr2));
 		
 		for (OurMethodDeclaration ourMethodDeclaration : impactedFromOrig) {
 			MethodDeclaration m = getMethod(classTarget, ourMethodDeclaration.getName());
@@ -35,7 +41,10 @@ public class PullUpField extends Common{
 		ArrayList<TypeDeclaration> classes = allclasses(comps);
 		ArrayList<TypeDeclaration> subClasses = getSubClasses(classes, classTarget);
 		for (TypeDeclaration sub : subClasses) {
-			impactedMethods.addAll(getMethodThatAccessField(sub, fieldName));
+			TypeObj cObj = getType(comps, sub.getName());
+			String packageStr = "_"+cObj.getPackageD().getName();
+			
+			impactedMethods.addAll(getMethodThatAccessField(sub, fieldName, packageStr));
 			
 			for (OurMethodDeclaration ourMethodDeclaration : impactedFromOrig) {
 				MethodDeclaration m = getMethod(classTarget, ourMethodDeclaration.getName());

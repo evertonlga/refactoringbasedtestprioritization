@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import util.OurMethodDeclaration;
+import util.TypeObj;
 
 public class ExtractMethod extends Common {
 
@@ -17,42 +18,54 @@ public class ExtractMethod extends Common {
 			String origMethodName, String newMethName, int beginLine, int endLine) {
 		HashSet<OurMethodDeclaration> impactedMethods = new HashSet<OurMethodDeclaration>();
 		
-		TypeDeclaration classObj = getType(comps, className);
+		TypeObj typeObj = getType(comps, className);
+		TypeDeclaration classObj = typeObj.getType();
+		String packageStr = "_"+typeObj.getPackageD().getName();
+		
 		MethodDeclaration meth = getMethod(classObj, origMethodName);
 		MethodDeclaration newMeth = getMethod(classObj, newMethName);
 		
-		impactedMethods.add(new OurMethodDeclaration(meth.getName(), meth.getParameters()));
+		impactedMethods.add(new OurMethodDeclaration(meth.getName()+packageStr, meth.getParameters()));
 		if (newMeth != null)
-			impactedMethods.add(new OurMethodDeclaration(newMeth.getName(), newMeth.getParameters()));
+			impactedMethods.add(new OurMethodDeclaration(newMeth.getName()+packageStr, newMeth.getParameters()));
 		
 		if (meth != null)
-			impactedMethods.addAll(caller(classObj, meth));
-		else impactedMethods.addAll(caller(classObj, origMethodName));
+			impactedMethods.addAll(caller(classObj, meth, packageStr));
+		else impactedMethods.addAll(caller(classObj, origMethodName, packageStr));
 		if (newMeth != null)
-			impactedMethods.addAll(caller(classObj, newMeth));
-		else impactedMethods.addAll(caller(classObj, newMethName));
+			impactedMethods.addAll(caller(classObj, newMeth, packageStr));
+		else impactedMethods.addAll(caller(classObj, newMethName, packageStr));
 		
 		ArrayList<Statement> stms = getStatements(meth, beginLine, endLine);
-		impactedMethods.addAll(fieldAnalysis(classObj, stms));
+		impactedMethods.addAll(fieldAnalysis(classObj, stms, packageStr));
 		
 		ArrayList<TypeDeclaration> classes = allclasses(comps);
 		ArrayList<TypeDeclaration> subClasses = getSubClasses(classes, classObj);
 		for (TypeDeclaration sub : subClasses) {
-			impactedMethods.addAll(caller(sub, meth));
-			impactedMethods.addAll(fieldAnalysis(sub, stms));
-			impactedMethods.addAll(caller(sub, newMeth));
+			TypeObj cObj = getType(comps, sub.getName());
+			packageStr = "_"+typeObj.getPackageD().getName();
+			
+			impactedMethods.addAll(caller(sub, meth, packageStr));
+			impactedMethods.addAll(fieldAnalysis(sub, stms, packageStr));
+			impactedMethods.addAll(caller(sub, newMeth, packageStr));
 		}
 		
 		
 		if (ModifierSet.isStatic(meth.getModifiers())){
 			for (TypeDeclaration c : classes) {
-				impactedMethods.addAll(caller(c, meth));
+				TypeObj cObj = getType(comps, c.getName());
+				packageStr = "_"+typeObj.getPackageD().getName();
+				
+				impactedMethods.addAll(caller(c, meth, packageStr));
 			}
 		}
 		
 		if (newMeth!= null && ModifierSet.isStatic(newMeth.getModifiers())){
 			for (TypeDeclaration c : classes) {
-				impactedMethods.addAll(caller(c, newMeth));
+				TypeObj cObj = getType(comps, c.getName());
+				packageStr = "_"+typeObj.getPackageD().getName();
+				
+				impactedMethods.addAll(caller(c, newMeth, packageStr));
 			}
 		}
 			

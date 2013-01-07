@@ -70,7 +70,7 @@ public class Facade {
 //		f.getImpactedElementsMoveMethod(comps, "CallLogger", "C", "pushFieldRead");
 //		f.getImpactedElementsPullUpMethod(comps, "C", "B", "test");
 //		f.getImpactedElementsPullUpField(comps, "B", "A", "v");
-		HashSet<OurMethodDeclaration> impactedMeths = f.getImpactedElementsAddParameter(comps, "InvocationMockerBuilder", "setStub");
+		HashSet<OurMethodDeclaration> impactedMeths = f.getImpactedElementsAddParameter(comps, "org.jmock.builder.InvocationMockerBuilder", "setStub");
 	}
 
 }
