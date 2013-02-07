@@ -14,13 +14,13 @@ import util.TypeObj;
 
 public class ExtractMethod extends Common {
 
-	public static HashSet<OurMethodDeclaration> getImpactedMethods(ArrayList<CompilationUnit> comps, String className, 
+	public static ArrayList<String> getImpactedMethods(ArrayList<CompilationUnit> comps, String className, 
 			String origMethodName, String newMethName, int beginLine, int endLine) {
 		HashSet<OurMethodDeclaration> impactedMethods = new HashSet<OurMethodDeclaration>();
 		
 		TypeObj typeObj = getType(comps, className);
 		TypeDeclaration classObj = typeObj.getType();
-		String packageStr = "_"+typeObj.getPackageD().getName();
+		String packageStr = "_"+typeObj.getPackageD().getName()+"."+classObj.getName();
 		
 		MethodDeclaration meth = getMethod(classObj, origMethodName);
 		MethodDeclaration newMeth = getMethod(classObj, newMethName);
@@ -37,16 +37,16 @@ public class ExtractMethod extends Common {
 		else impactedMethods.addAll(caller(classObj, newMethName, packageStr));
 		
 		ArrayList<Statement> stms = getStatements(meth, beginLine, endLine);
-		impactedMethods.addAll(fieldAnalysis(classObj, stms, packageStr));
+		impactedMethods.addAll(fieldAnalysis(meth, classObj, stms, packageStr));
 		
 		ArrayList<TypeObj> classes = allclasses(comps);
 		ArrayList<TypeObj> subClasses = getSubClasses(classes, classObj);
 		for (TypeObj sub : subClasses) {
 			TypeObj cObj = getType(comps, sub.toString());
-			packageStr = "_"+typeObj.getPackageD().getName();
+			packageStr = "_"+typeObj.getPackageD().getName()+"."+cObj.getType().getName();
 			
 			impactedMethods.addAll(caller(sub.getType(), meth, packageStr));
-			impactedMethods.addAll(fieldAnalysis(sub.getType(), stms, packageStr));
+			impactedMethods.addAll(fieldAnalysis(meth, sub.getType(), stms, packageStr));
 			impactedMethods.addAll(caller(sub.getType(), newMeth, packageStr));
 		}
 		
@@ -54,7 +54,7 @@ public class ExtractMethod extends Common {
 		if (ModifierSet.isStatic(meth.getModifiers())){
 			for (TypeObj c : classes) {
 				TypeObj cObj = getType(comps, c.toString());
-				packageStr = "_"+typeObj.getPackageD().getName();
+				packageStr = "_"+typeObj.getPackageD().getName()+"."+cObj.getType().getName();
 				
 				impactedMethods.addAll(caller(c.getType(), meth, packageStr));
 			}
@@ -63,14 +63,16 @@ public class ExtractMethod extends Common {
 		if (newMeth!= null && ModifierSet.isStatic(newMeth.getModifiers())){
 			for (TypeObj c : classes) {
 				TypeObj cObj = getType(comps, c.toString());
-				packageStr = "_"+typeObj.getPackageD().getName();
+				packageStr = "_"+typeObj.getPackageD().getName()+"."+cObj.getType().getName();
 				
 				impactedMethods.addAll(caller(c.getType(), newMeth, packageStr));
 			}
 		}
 			
-		write2(impactedMethods);
-		return impactedMethods;		
+//		write2(impactedMethods);
+		impactedMethods = excludeRepetitions(impactedMethods);
+		return affectedToString(impactedMethods);		
 	}
+
 
 }

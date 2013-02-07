@@ -256,32 +256,42 @@ public class Common {
 	}
 	
 	protected static ArrayList<Statement> getStatements(MethodDeclaration meth, int begin, int end) {
-		List<Statement> stms = meth.getBody().getStmts();
-		
-		ArrayList<Statement> returnStms = new ArrayList<Statement>();
-		
-		for (Statement statement : stms) {
-			if (statement.getBeginLine() >= begin && statement.getEndLine() <= end)
-				returnStms.add(statement);
+		ArrayList<Statement> returnStms = null;
+		try {
+			List<Statement> stms = meth.getBody().getStmts();
+			
+			returnStms = new ArrayList<Statement>();
+			
+			for (Statement statement : stms) {
+				if (statement.getBeginLine() >= begin && statement.getEndLine() <= end)
+					returnStms.add(statement);
+			}
+		} catch (NullPointerException e) {
+
 		}
 		
 		return returnStms;
 	}
 	
 	
-	protected static ArrayList<OurMethodDeclaration> fieldAnalysis(TypeDeclaration classObj,
+	protected static ArrayList<OurMethodDeclaration> fieldAnalysis(MethodDeclaration meth, TypeDeclaration classObj,
 			ArrayList<Statement> changedStms, String packageStr) {
 		ArrayList<MethodDeclaration> methods = getMethods(classObj);
 		ArrayList<ExprObj> changedFields = (ArrayList<ExprObj>) getFieldsIn(changedStms);
+		changedFields = excludingLocalFields(meth, changedFields);
 		
 		ArrayList<OurMethodDeclaration> affectedMeths = new ArrayList<OurMethodDeclaration>();
 		
 		for (MethodDeclaration method : methods) {
-			LinkedList<Statement> stms = (LinkedList<Statement>) method.getBody().getStmts();
-			if (stms != null){
-				ArrayList<ExprObj> fields = (ArrayList<ExprObj>) getFieldsIn(stms);
-				if (commonElements(fields, changedFields))
-					affectedMeths.add(new OurMethodDeclaration(method.getName()+packageStr, method.getParameters()));
+			try {
+				LinkedList<Statement> stms = (LinkedList<Statement>) method.getBody().getStmts();
+				if (stms != null){
+					ArrayList<ExprObj> fields = (ArrayList<ExprObj>) getFieldsIn(stms);
+					if (commonElements(fields, changedFields))
+						affectedMeths.add(new OurMethodDeclaration(method.getName()+packageStr, method.getParameters()));
+				}
+			} catch (NullPointerException e) {
+				// TODO: handle exception
 			}
 		}
 		
@@ -289,21 +299,79 @@ public class Common {
 		return affectedMeths;
 	}
 	
+	private static ArrayList<ExprObj> excludingLocalFields(
+			MethodDeclaration meth, ArrayList<ExprObj> changedFields) {
+		XStream xstream = new XStream();
+		String xmlObj = xstream.toXML(meth);
+		ArrayList<ExprObj> returnSet = changedFields;
+		
+		Scanner input = new Scanner(xmlObj);
+		String varStr = "";
+		while (input.hasNext()){
+			String line = input.nextLine();
+			if (line.contains("japa.parser.ast.body.VariableDeclarator")){
+				boolean varDec = true;
+				while (varDec){
+					line = input.nextLine();
+					if (line.contains("/japa.parser.ast.body.VariableDeclarator"))
+						varDec = false;
+					else{
+						varStr+= line+"\n";
+					}
+				}
+			}
+		}
+		
+		ArrayList<String > varNames = getVarNames (varStr);
+		returnSet = new ArrayList<ExprObj>();
+		for (ExprObj field : changedFields) {
+			int index = 0;
+			boolean notFound = true;
+			while (index < varNames.size() && notFound){
+				String varName = varNames.get(index);
+				if (field.getName().equals(varName))
+					notFound = false;
+				index++;
+			}
+			if (notFound)
+				returnSet.add(field);
+		}
+		
+		return returnSet;
+	}
+
+	private static ArrayList<String> getVarNames(String varStr) {
+		ArrayList<String> ret = new ArrayList<>();
+		Scanner input = new Scanner(varStr);
+		while (input.hasNext()){
+			String line = input.nextLine();
+			if (line.contains("<name>") && line.contains("</name>")){
+				String e = line.substring(line.indexOf("<name>")+6, line.indexOf("</name>"));
+					ret.add(e);
+			}
+		}
+		return ret;
+	}
+
 	protected static ArrayList<OurMethodDeclaration> getMethodThatAccessField(TypeDeclaration classObj,
 			String fieldName, String packD) {
 		ArrayList<MethodDeclaration> methods = getMethods(classObj);
 		ArrayList<OurMethodDeclaration> affectedMeths = new ArrayList<OurMethodDeclaration>();
 		
 		for (MethodDeclaration method : methods) {
-			LinkedList<Statement> stms = (LinkedList<Statement>) method.getBody().getStmts();
-			if (stms != null){
-				for (Statement statement : stms) {
-					if (accessField(statement, fieldName)){
-						affectedMeths.add(new OurMethodDeclaration(
-								method.getName()+packD+"."+classObj.getName(), method.getParameters()));
-						break;
+			try {
+				LinkedList<Statement> stms = (LinkedList<Statement>) method.getBody().getStmts();
+				if (stms != null){
+					for (Statement statement : stms) {
+						if (accessField(statement, fieldName)){
+							affectedMeths.add(new OurMethodDeclaration(
+									method.getName()+packD+"."+classObj.getName(), method.getParameters()));
+							break;
+						}
 					}
 				}
+			} catch (NullPointerException e) {
+				// TODO: handle exception
 			}
 		}
 		
@@ -337,8 +405,8 @@ public class Common {
 
 
 	/* 
-	 * Estratégia:
-	 * Pegar todos os NameExp e ThisExt que estão dentro das linhas dos statements fornecidos
+	 * Estratï¿½gia:
+	 * Pegar todos os NameExp e ThisExt que estï¿½o dentro das linhas dos statements fornecidos
 	 */
 	protected static List<ExprObj> getFieldsIn(
 			List<Statement> changedStms) {
@@ -432,10 +500,30 @@ public class Common {
 		
 	}
 	
-	protected static void write2(HashSet<OurMethodDeclaration> affectedMeths) {
+	protected static ArrayList<String> affectedToString(HashSet<OurMethodDeclaration> affectedMeths) {
+		ArrayList<String> returnSet = new ArrayList<String>();
 		for (OurMethodDeclaration obj : affectedMeths) {
-			System.out.println(obj);
+			returnSet.add(obj.toString());
 		}
-		
+		return returnSet;
+	}
+	
+	public static HashSet<OurMethodDeclaration> excludeRepetitions(
+			HashSet<OurMethodDeclaration> impactedMethods) {
+		HashSet<OurMethodDeclaration> set = new HashSet<>();
+		for (OurMethodDeclaration meth : impactedMethods) {
+			if (!contains(set, meth))
+				set.add(meth);
+		}
+		return set;
+	}
+
+	private static boolean contains(HashSet<OurMethodDeclaration> set,
+			OurMethodDeclaration meth) {
+		for (OurMethodDeclaration ourMethodDeclaration : set) {
+			if (ourMethodDeclaration.toString().equals(meth.toString()))
+				return true;
+		}
+		return false;
 	}
 }
