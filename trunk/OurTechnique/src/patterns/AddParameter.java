@@ -14,13 +14,13 @@ import util.TypeObj;
 
 public class AddParameter extends Common{
 
-	public static HashSet<OurMethodDeclaration> getImpactedMethods(ArrayList<CompilationUnit> comps, String className, 
+	public static ArrayList<String> getImpactedMethods(ArrayList<CompilationUnit> comps, String className, 
 			String methodSig) {
 		HashSet<OurMethodDeclaration> impactedMethods = new HashSet<OurMethodDeclaration>();
 		
 		TypeObj typeObj = getType(comps, className);
 		TypeDeclaration classObj = typeObj.getType();
-		String packageStr = "_"+typeObj.getPackageD().getName();
+		String packageStr = "_"+typeObj.getPackageD().getName()+"."+classObj.getName();
 		
 		MethodDeclaration meth = getMethod(classObj, methodSig);
 		
@@ -31,19 +31,20 @@ public class AddParameter extends Common{
 		ArrayList<TypeObj> subClasses = getSubClasses(classes, classObj);
 		for (TypeObj sub : subClasses) {
 			TypeObj subObj = getType(comps, sub.getType().getName());
-			packageStr = "_"+subObj.getPackageD().getName();
+			packageStr = "_"+subObj.getPackageD().getName()+"."+subObj.getType().getName();
 			impactedMethods.addAll(caller(sub.getType(), meth, packageStr));
 		}
 		
 		if (ModifierSet.isStatic(meth.getModifiers())){
 			for (TypeObj c : classes) {
 				TypeObj cObj = getType(comps, c.getType().getName());
-				packageStr = "_"+cObj.getPackageD().getName();
-				impactedMethods.addAll(caller(c.getType(), meth, packageStr));
+				if (cObj != null){
+					packageStr = "_"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
+					impactedMethods.addAll(caller(c.getType(), meth, packageStr));
+				}
 			}
 		}
-		
-		write2(impactedMethods);	
-		return impactedMethods;
+		impactedMethods = excludeRepetitions(impactedMethods);
+		return affectedToString(impactedMethods);
 	}
 }
