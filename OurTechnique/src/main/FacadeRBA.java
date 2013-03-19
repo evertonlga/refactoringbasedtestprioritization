@@ -55,16 +55,54 @@ public class FacadeRBA {
 	}
 	
 	public static void main(String args[]) throws DBException{
-		String path = "examples/jmock-1.1.0/core";
+//		String path = "examples/jmock-1.1.0/core";
 //		String path = "examples";
+//		String path = "examples/MM_7/src";
+//		String edit = "moveMethod";
+		
+		String path = args[0];
+		String edit = args[1];
+		
 		FacadeRBA f = new FacadeRBA();
 		ArrayList<CompilationUnit> comps = f.parse(path);
-		f.getImpactedElementsRenameMethod(comps, "org.jmock.core.matcher.InvokeAtLeastOnceMatcher", "hasDescription", "hasBeenInvoked");
-		f.getImpactedElementsExtractMethod(comps, "org.jmock.core.stub.ThrowStub", "reportIncompatibleCheckedException(Class[] allowedTypes)", "newMeth", 42, 42);
-		f.getImpactedElementsMoveMethod(comps, "org.jmock.core.DynamicMockError", "org.jmock.core.InvocationMocker", "getMessage");
-		f.getImpactedElementsPullUpMethod(comps, "org.jmock.core.matcher.InvokeAtLeastOnceMatcher", "org.jmock.core.matcher.InvokedRecorder", "hasDescription");
-		f.getImpactedElementsPullUpField(comps, "org.jmock.expectation.ExpectationSet", "org.jmock.expectation.AbstractExpectationCollection", "myActualItems");
-		f.getImpactedElementsAddParameter(comps, "org.jmock.expectation.AssertMo", "assertEquals( String description, Object[] expectedArray, Object[] actualArray)");
+		
+		switch (edit) {
+		case "renameMethod":
+			f.getImpactedElementsRenameMethod(comps, args[2], args[3], args[4]);
+			break;
+		case "extractMethod":
+			f.getImpactedElementsExtractMethod(comps, args[2], args[3], args[4], Integer.parseInt(args[5]), Integer.parseInt(args[6]));
+			break;
+		case "moveMethod":
+			f.getImpactedElementsMoveMethod(comps, args[2], args[3], args[4]);
+			break;
+		case "pullUpMethod":
+			f.getImpactedElementsPullUpMethod(comps, args[2], args[3], args[4]);
+			break;
+		case "pullUpField":
+			f.getImpactedElementsPullUpField(comps, args[2], args[3], args[4]);
+			break;
+		case "addParameter":
+			f.getImpactedElementsAddParameter(comps, args[2], args[3]);
+			break;
+		default:
+			break;
+		}
+		
+		
+//		f.getImpactedElementsRenameMethod(comps, "org.jmock.core.matcher.InvokeAtLeastOnceMatcher", "hasDescription", "hasBeenInvoked");
+//		f.getImpactedElementsExtractMethod(comps, "org.jmock.core.stub.ThrowStub", "reportIncompatibleCheckedException(Class[] allowedTypes)", "newMeth", 42, 42);
+//		f.getImpactedElementsMoveMethod(comps, "org.jmock.core.DynamicMockError", "org.jmock.core.InvocationMocker", "getMessage");
+//		f.getImpactedElementsPullUpMethod(comps, "org.jmock.core.matcher.InvokeAtLeastOnceMatcher", "org.jmock.core.matcher.InvokedRecorder", "hasDescription");
+//		f.getImpactedElementsPullUpField(comps, "org.jmock.expectation.ExpectationSet", "org.jmock.expectation.AbstractExpectationCollection", "myActualItems");
+//		f.getImpactedElementsAddParameter(comps, "org.jmock.expectation.AssertMo", "assertEquals( String description, Object[] expectedArray, Object[] actualArray)");
+	
+//		ArrayList<String> impactedMeths = f.getImpactedElementsPullUpMethod(comps, "p1.B", "p1.A", "k");
+//		ArrayList<String> impactedMeths = f.getImpactedElementsPullUpMethod(comps, "p1.B", "p1.C", "m");
+//		ArrayList<String> impactedMeths = f.getImpactedElementsMoveMethod(comps, "p2.A_0", "p1.ClassId_0", "m_0(int a)");
+//		for (String string : impactedMeths) {
+//			System.out.println(string);
+//		}
 	}
 
 }

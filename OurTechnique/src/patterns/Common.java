@@ -69,12 +69,11 @@ public class Common {
 						if (index - 5 > 0){
 							String subString = (String) stm.toString().subSequence(index-5, index);
 							if (subString.equals("this.")){
-//								System.out.println(methodD.getName());
 								return true;
 							}
 						}
 					}else{
-//						System.out.println(methodD.getName());
+						if (index > 0 && stm.toString().charAt(index-1) == ' ')
 						return true;
 					}
 				}
@@ -90,9 +89,9 @@ public class Common {
 				if (stm.toString().contains(meth.getName()+"(")){
 					int index = stm.toString().indexOf(meth.getName()+"(");
 					if (index > 0 && stm.toString().charAt(index-1) == '.'){
-						if (index - 5 > 0){
-							String subString = (String) stm.toString().subSequence(index-5, index);
-							if (subString.equals("this.")){
+						if (index - 6 > 0){
+							String subString = (String) stm.toString().subSequence(index-6, index);
+							if (subString.contains("this.") || (subString.equals("super."))){
 //								System.out.println(methodD.getName());
 								return true;
 							}
@@ -208,8 +207,8 @@ public class Common {
 		for (BodyDeclaration bd : classObj.getMembers()) {
 			if (bd instanceof MethodDeclaration) {
 				MethodDeclaration md = (MethodDeclaration) bd;
-				int index = methodString.lastIndexOf("_");
-				if (index == -1){
+//				int index = methodString.lastIndexOf("_");
+//				if (index == -1){
 					int leftPar = methodString.indexOf("(");
 					int rigthPar = methodString.indexOf(")");
 					if (leftPar != -1 && rigthPar != -1){
@@ -225,19 +224,19 @@ public class Common {
 						if (methodString.equals(((MethodDeclaration) bd).getName()))
 							return md;
 					}
-				}
-				else{
-					if (index != -1){
-						String methN = methodString.substring(0, index);
-						String param = (methodString.substring(methodString.indexOf("(")+1, methodString.indexOf(")"))).trim();
-						if (md.getName().equals(methN))
-							if ((md.getParameters() != null && md.getParameters().toString().trim().equals(param)) ||
-									(md.getParameters() != null && param.equals(""))){
-//							System.out.println("Achou 2");
-							return md;
-						}
-					}
-				}
+//				}
+//				else{
+//					if (index != -1){
+//						String methN = methodString.substring(0, index);
+//						String param = (methodString.substring(methodString.indexOf("(")+1, methodString.indexOf(")"))).trim();
+//						if (md.getName().equals(methN))
+//							if ((md.getParameters() != null && md.getParameters().toString().trim().equals(param)) ||
+//									(md.getParameters() != null && param.equals(""))){
+////							System.out.println("Achou 2");
+//							return md;
+//						}
+//					}
+//				}
 			}
 		}
 		return null;
