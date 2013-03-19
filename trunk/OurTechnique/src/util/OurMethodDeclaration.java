@@ -43,11 +43,11 @@ public class OurMethodDeclaration{
 	
 	@Override
 	public String toString (){
-		String methName = name.substring(0, name.indexOf("_"));
-		String path = name.substring(name.indexOf("_")+1);
+		String methName = name.substring(0, name.indexOf("*"));
+		String path = name.substring(name.indexOf("*")+1);
 		if (parameters != null)
-			return path+"_"+methName+"("+parameters.toString()+")";
-		else return path+"_"+name +"()";
+			return path+"*"+methName+"("+parameters.toString()+")";
+		else return path+"*"+name +"()";
 	}
 	
 	

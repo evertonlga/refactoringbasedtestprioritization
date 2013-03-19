@@ -20,12 +20,12 @@ public class MoveMethod extends Common {
 		
 		TypeObj typeObjOne = getType(comps, classOneName);
 		TypeDeclaration classOrig = typeObjOne.getType();
-		String packageStr1 = "_"+typeObjOne.getPackageD().getName()+"."+classOrig.getName();		
+		String packageStr1 = "*"+typeObjOne.getPackageD().getName()+"."+classOrig.getName();		
 		MethodDeclaration meth = getMethod(classOrig, methName);
 		
 		TypeObj typeObjTwo = getType(comps, classTwoName);
 		TypeDeclaration classTarget = typeObjTwo.getType();
-		String packageStr2 = "_"+typeObjTwo.getPackageD().getName()+"."+classTarget.getName();;
+		String packageStr2 = "*"+typeObjTwo.getPackageD().getName()+"."+classTarget.getName();;
 		MethodDeclaration newMeth = getMethod(classTarget, methName);
 		
 		impactedMethods.add(new OurMethodDeclaration(meth.getName()+packageStr1, meth.getParameters()));
@@ -52,7 +52,7 @@ public class MoveMethod extends Common {
 		ArrayList<TypeObj> subClasses = getSubClasses(classes, classOrig);
 		for (TypeObj sub : subClasses) {
 			TypeObj cObj = getType(comps, sub.toString());
-			String packageStr = "_"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
+			String packageStr = "*"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
 			
 			impactedMethods.addAll(caller(sub.getType(), meth, packageStr));
 			impactedMethods.addAll(fieldAnalysis(meth, sub.getType(), new ArrayList<Statement>(meth.getBody().getStmts()),packageStr));
@@ -61,16 +61,38 @@ public class MoveMethod extends Common {
 		subClasses = getSubClasses(classes, classTarget);
 		for (TypeObj sub : subClasses) {
 			TypeObj cObj = getType(comps, sub.toString());
-			String packageStr = "_"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
+			String packageStr = "*"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
 			
 			impactedMethods.addAll(caller(sub.getType(), meth, packageStr));
 			impactedMethods.addAll(fieldAnalysis(meth, sub.getType(), new ArrayList<Statement>(meth.getBody().getStmts()), packageStr));
 		}
 		
+		
+		ArrayList<TypeObj> superClassesOr = getSuperClasses(classes, classOrig);
+		for (TypeObj superC : superClassesOr) {
+			TypeObj cObj = getType(comps, superC.toString());
+			String packStr = "*"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
+			
+			MethodDeclaration m = getMethod(superC.getType(), methName);
+			if (m != null)
+				impactedMethods.add(new OurMethodDeclaration(m.getName()+packStr, m.getParameters()));
+			impactedMethods.addAll(caller(superC.getType(), meth, packStr));
+		}
+		
+		ArrayList<TypeObj> superClassesTar = getSuperClasses(classes, classTarget);
+		for (TypeObj superC : superClassesTar) {
+			TypeObj cObj = getType(comps, superC.toString());
+			String packStr = "*"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
+			
+			MethodDeclaration m = getMethod(superC.getType(), methName);
+			if (m != null)
+				impactedMethods.add(new OurMethodDeclaration(m.getName()+packStr, m.getParameters()));
+		}
+		
 		if (ModifierSet.isStatic(meth.getModifiers())){
 			for (TypeObj c : classes) {
 				TypeObj cObj = getType(comps, c.toString());
-				String packageStr = "_"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
+				String packageStr = "*"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
 				
 				impactedMethods.addAll(caller(c.getType(), meth, packageStr));
 				impactedMethods.addAll(fieldAnalysis(meth, c.getType(), new ArrayList<Statement>(meth.getBody().getStmts()), packageStr));
