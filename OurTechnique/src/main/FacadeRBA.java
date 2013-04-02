@@ -57,7 +57,7 @@ public class FacadeRBA {
 	public static void main(String args[]) throws DBException{
 //		String path = "examples/jmock-1.1.0/core";
 //		String path = "examples";
-//		String path = "examples/MM_7/src";
+//		String path = "examples/PUM_6/src";
 //		String edit = "moveMethod";
 		
 		String path = args[0];
@@ -100,6 +100,9 @@ public class FacadeRBA {
 //		ArrayList<String> impactedMeths = f.getImpactedElementsPullUpMethod(comps, "p1.B", "p1.A", "k");
 //		ArrayList<String> impactedMeths = f.getImpactedElementsPullUpMethod(comps, "p1.B", "p1.C", "m");
 //		ArrayList<String> impactedMeths = f.getImpactedElementsMoveMethod(comps, "p2.A_0", "p1.ClassId_0", "m_0(int a)");
+//		ArrayList<String> impactedMeths = f.getImpactedElementsAddParameter(comps, "p1.A", "k()");
+//		ArrayList<String> impactedMeths = f.getImpactedElementsPullUpMethod(comps, "p1.C", "p1.A", "m");
+//		
 //		for (String string : impactedMeths) {
 //			System.out.println(string);
 //		}

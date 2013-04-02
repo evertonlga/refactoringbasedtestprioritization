@@ -22,11 +22,11 @@ public class PullUpField extends Common{
 
 		TypeObj typeObjOne = getType(comps, classOneName);
 		TypeDeclaration classOrig = typeObjOne.getType();
-		String packageStr1 = "_"+typeObjOne.getPackageD().getName()+"."+classOrig.getName();
+		String packageStr1 = "*"+typeObjOne.getPackageD().getName()+"."+classOrig.getName();
 
 		TypeObj typeObjTwo = getType(comps, classTwoName);
 		TypeDeclaration classTarget = typeObjTwo.getType();
-		String packageStr2 = "_"+typeObjTwo.getPackageD().getName()+"."+classTarget.getName();
+		String packageStr2 = "*"+typeObjTwo.getPackageD().getName()+"."+classTarget.getName();
 
 		ArrayList<OurMethodDeclaration> impactedFromOrig = getMethodThatAccessField(classOrig, fieldName, packageStr1);
 		impactedMethods.addAll(impactedFromOrig);
@@ -42,7 +42,7 @@ public class PullUpField extends Common{
 		ArrayList<TypeObj> subClasses = getSubClasses(classes, classTarget);
 		for (TypeObj sub : subClasses) {
 			TypeObj cObj = getType(comps, sub.toString());
-			String packageStr = "_"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
+			String packageStr = "*"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
 
 			impactedMethods.addAll(getMethodThatAccessField(sub.getType(), fieldName, packageStr));
 
