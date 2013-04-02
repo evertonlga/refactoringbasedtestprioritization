@@ -29,6 +29,16 @@ public class MoveMethod extends Common {
 		MethodDeclaration newMeth = getMethod(classTarget, methName);
 		
 		impactedMethods.add(new OurMethodDeclaration(meth.getName()+packageStr1, meth.getParameters()));
+		
+		if (methName.contains("(")){
+			int index = methName.indexOf("(");
+			String simpleMethName = methName.substring(0, index);
+			ArrayList<MethodDeclaration> meths = findMethodsByName(classOrig, simpleMethName);
+			for (MethodDeclaration m : meths) {
+				impactedMethods.add(new OurMethodDeclaration(m.getName()+packageStr1, m.getParameters()));
+			}
+		}
+		
 		if (newMeth != null)
 			impactedMethods.add(new OurMethodDeclaration(newMeth.getName()+packageStr2, newMeth.getParameters()));
 		
@@ -67,7 +77,6 @@ public class MoveMethod extends Common {
 			impactedMethods.addAll(fieldAnalysis(meth, sub.getType(), new ArrayList<Statement>(meth.getBody().getStmts()), packageStr));
 		}
 		
-		
 		ArrayList<TypeObj> superClassesOr = getSuperClasses(classes, classOrig);
 		for (TypeObj superC : superClassesOr) {
 			TypeObj cObj = getType(comps, superC.toString());
@@ -102,4 +111,5 @@ public class MoveMethod extends Common {
 		impactedMethods = excludeRepetitions(impactedMethods);
 		return affectedToString(impactedMethods);
 	}
+
 }

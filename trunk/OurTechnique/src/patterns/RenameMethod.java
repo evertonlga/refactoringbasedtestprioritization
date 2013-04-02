@@ -17,7 +17,7 @@ public class RenameMethod extends Common {
 		
 		TypeObj typeObj = getType(comps, className);
 		TypeDeclaration classObj = typeObj.getType();
-		String packageStr = "_"+typeObj.getPackageD().getName()+"."+classObj.getName();
+		String packageStr = "*"+typeObj.getPackageD().getName()+"."+classObj.getName();
 		
 		MethodDeclaration meth = getMethod(classObj, methodName);
 		MethodDeclaration newMeth = getMethod(classObj, newName);
@@ -35,7 +35,7 @@ public class RenameMethod extends Common {
 		ArrayList<TypeObj> subClasses = getSubClasses(classes, classObj);
 		for (TypeObj sub : subClasses) {
 			TypeObj cObj = getType(comps, sub.toString());
-			String packStr = "_"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
+			String packStr = "*"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
 			
 			impactedMethods.addAll(caller(sub.getType(), meth, packStr));
 			impactedMethods.addAll(caller(sub.getType(), newName, packStr));
@@ -44,20 +44,20 @@ public class RenameMethod extends Common {
 		ArrayList<TypeObj> superClasses = getSuperClasses(classes, classObj);
 		for (TypeObj superC : superClasses) {
 			TypeObj cObj = getType(comps, superC.toString());
-			String packStr = "_"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
+			String packStr = "*"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
 			
 			MethodDeclaration m = getMethod(superC.getType(), methodName);
 			MethodDeclaration m2 = getMethod(superC.getType(), newName);
 			if (m != null)
 				impactedMethods.add(new OurMethodDeclaration(m.getName()+packageStr, m.getParameters()));
 			if (m2 != null)
-				impactedMethods.add(new OurMethodDeclaration(m2.getName()+packageStr, m.getParameters()));
+				impactedMethods.add(new OurMethodDeclaration(m2.getName()+packageStr, m2.getParameters()));
 		}
 		
 		if (ModifierSet.isStatic(meth.getModifiers())){
 			for (TypeObj c : classes) {
 				TypeObj cObj = getType(comps, c.toString());
-				String packStr = "_"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
+				String packStr = "*"+cObj.getPackageD().getName()+"."+cObj.getType().getName();
 				
 				impactedMethods.addAll(caller(c.getType(), meth, packStr));
 			}

@@ -45,9 +45,14 @@ public class OurMethodDeclaration{
 	public String toString (){
 		String methName = name.substring(0, name.indexOf("*"));
 		String path = name.substring(name.indexOf("*")+1);
-		if (parameters != null)
-			return path+"*"+methName+"("+parameters.toString()+")";
-		else return path+"*"+name +"()";
+		String retStr;
+		if (parameters != null){
+			retStr = path+"*"+methName+"("+parameters.toString()+")";
+		}
+		else {
+			retStr = path+"*"+name +"()";
+		}
+		return retStr;
 	}
 	
 	

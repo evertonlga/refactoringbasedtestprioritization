@@ -207,8 +207,6 @@ public class Common {
 		for (BodyDeclaration bd : classObj.getMembers()) {
 			if (bd instanceof MethodDeclaration) {
 				MethodDeclaration md = (MethodDeclaration) bd;
-//				int index = methodString.lastIndexOf("_");
-//				if (index == -1){
 					int leftPar = methodString.indexOf("(");
 					int rigthPar = methodString.indexOf(")");
 					if (leftPar != -1 && rigthPar != -1){
@@ -224,22 +222,23 @@ public class Common {
 						if (methodString.equals(((MethodDeclaration) bd).getName()))
 							return md;
 					}
-//				}
-//				else{
-//					if (index != -1){
-//						String methN = methodString.substring(0, index);
-//						String param = (methodString.substring(methodString.indexOf("(")+1, methodString.indexOf(")"))).trim();
-//						if (md.getName().equals(methN))
-//							if ((md.getParameters() != null && md.getParameters().toString().trim().equals(param)) ||
-//									(md.getParameters() != null && param.equals(""))){
-////							System.out.println("Achou 2");
-//							return md;
-//						}
-//					}
-//				}
 			}
 		}
 		return null;
+	}
+	
+	
+	protected static ArrayList<MethodDeclaration> findMethodsByName(
+			TypeDeclaration classObj, String methName) {
+		ArrayList<MethodDeclaration> returnSet = new ArrayList<MethodDeclaration>(); 
+		for (BodyDeclaration bd : classObj.getMembers()) {
+			if (bd instanceof MethodDeclaration) {
+				MethodDeclaration md = (MethodDeclaration) bd;
+				if (md.getName().equals(methName))
+					returnSet.add(md);
+			}
+		}
+		return returnSet;
 	}
 	
 	
@@ -431,13 +430,18 @@ public class Common {
 				if (line.contains("<field>") && fieldAccess){
 					String fieldName = (String) line.subSequence(line.indexOf("<field>")+7, line.indexOf("</field>"));
 					
-					ExprObj lastAdded = nameExprs.get(nameExprs.size()-1);
-					nameExprs.remove(lastAdded);
-					String name = lastAdded.getName();
-					if (!name.equals(""))
-						lastAdded.setName(name+"."+fieldName);
-					else lastAdded.setName(fieldName);
-					nameExprs.add(lastAdded);
+					if (nameExprs.size()>0){
+						ExprObj lastAdded = nameExprs.get(nameExprs.size()-1);
+						nameExprs.remove(lastAdded);
+						String name = lastAdded.getName();
+						if (!name.equals(""))
+							lastAdded.setName(name+"."+fieldName);
+						else lastAdded.setName(fieldName);
+						nameExprs.add(lastAdded);
+					}else{
+//						lastAdded.setName(fieldName);
+						nameExprs.add(new ExprObj(beingLine, endLine, fieldName));
+					}
 				}
 				if ((line.contains("japa.parser.ast.expr.NameExpr") && !line.contains("/japa.parser.ast.expr.NameExpr"))
 						|| (line.contains("japa.parser.ast.expr.ThisExpr") && !line.contains("/japa.parser.ast.expr.ThisExpr"))){
